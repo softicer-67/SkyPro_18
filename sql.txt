@@ -1,0 +1,98 @@
+-- создать администратора с полными правами
+CREATE USER "Admin" WITH PASSWORD '123456'
+GRANT ALL PRIVILEGES ON DATABASE "animal_bd" to "Admin"
+
+-- посмотреть всех пользователей
+select * from pg_user
+
+
+-- Запускается новая таблица с нужными полями
+SELECT age_upon_outcome, animal_id, name, date_of_birth, outcome_month, outcome_year, breed_type, name_outcome_type, name_outcome_subtype, animal_type, name_colour FROM main_animals 
+JOIN breed_dict on main_animals.id_breed = breed_dict.id_breed
+JOIN animal_type on main_animals.animal = animal_type.id_type
+JOIN colour_dict on main_animals.id_colour = colour_dict.id_colour
+JOIN outcome_type on main_animals.id_outcome_type = outcome_type.id_outcome_type
+JOIN outcome_subtype on main_animals.id_outcome_subtype = outcome_subtype.id_outcome_subtype
+
+-- переделываю нужные поля
+UPDATE main_animals SET id_outcome_subtype = table2.id_outcome_subtype
+FROM (SELECT id_outcome_subtype, name_outcome_subtype FROM outcome_subtype) AS table2
+WHERE main_animals.outcome_subtype = table2.name_outcome_subtype
+
+
+UPDATE main_animals SET name_subtype = table2.name_subtype
+FROM (SELECT id_outcome_subtype, name_outcome_subtype FROM outcome_subtype) AS table2
+WHERE main_animals.id_outcome_subtype = table2.name_outcome_subtype
+
+UPDATE main_animals SET id_colour = table2.id_colour
+FROM (SELECT id_colour, name_colour FROM colour_dict) AS table2
+WHERE main_animals.color1 = table2.name_colour
+
+UPDATE main_animals SET id_breed = table2.id_breed
+FROM (SELECT id_breed, name_type FROM breed_dict) AS table2
+WHERE main_animals.breed = table2.name_type
+
+UPDATE main_animals SET id_outcome_subtype = table2.id_outcome_subtype
+FROM (SELECT id_outcome_subtype, name_outcome_subtype FROM outcome_subtype) AS table2
+WHERE main_animals.outcome_subtype = table2.name_outcome_subtype
+
+UPDATE main_animals SET id_outcome_type = table2.id_outcome_type
+FROM (SELECT id_outcome_type, name_outcome_type FROM outcome_type) AS table2
+WHERE main_animals.outcome_type = table2.name_outcome_type
+
+
+DELETE FROM breed_dict WHERE ctid NOT IN
+(SELECT max(ctid) FROM breed_dict GROUP BY name_type)
+
+
+SELECT * FROM main_animals
+
+-- создаю все таблицы
+create table animal_dict (
+	animal_id serial primary key, 
+	fk_animal_type INT REFERENCES animal_type (id_type),
+	name varchar(100),
+	fk_breed INT REFERENCES breed_dict (id_breed),
+	fk_color1 INT REFERENCES colour_dict (id_colour),
+	fk_color2 INT REFERENCES colour_dict (id_colour),
+	date_of_bird timestamptz
+)
+
+create table shelter_info (
+	id_shelter_info serial primary key, 
+	fk_animal_id INT REFERENCES animal_dict (animal_id),	
+	fk_id_outcome_subtype INT REFERENCES outcome_subtype (id_outcome_subtype),
+	outcome_month INT,
+	outcome_year INT,
+	fk_outcome_type INT REFERENCES outcome_type (id_outcome_type),
+	age_upon_outcome VARCHAR(20)
+)
+
+
+SELECT animal_type, name FROM main_animals
+Where animal_type = 'Cat'
+
+create table animal_type (
+	id_type serial primary key, 
+	name_type varchar(50)
+)
+
+create table breed_dict (
+	id_breed serial primary key, 
+	name_type varchar(100)
+)
+
+create table colour_dict (
+	id_colour serial primary key, 
+	name_colour varchar(100)
+)
+
+create table outcome_subtype (
+	id_outcome_subtype serial primary key, 
+	name_outcome_subtype varchar(100)
+)
+
+create table outcome_type (
+	id_outcome_type serial primary key, 
+	name_outcome_type varchar(100)
+)
