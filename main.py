@@ -3,7 +3,7 @@ import psycopg2
 from psycopg2 import Error
 
 
-def db_connect():
+def connect_db():
     try:
         # Подключиться к существующей базе данных
         connection = psycopg2.connect(user="postgres",
@@ -89,12 +89,19 @@ def create_table(cursor):
         date_of_bird timestamp with time zone,
         CONSTRAINT animal_dict_pkey PRIMARY KEY (animal_id)
     );
+    
+    SELECT age_upon_outcome, animal_id, name, date_of_birth, outcome_month, outcome_year, breed_type, name_outcome_type, name_outcome_subtype, animal_type, name_colour FROM main_animals 
+    JOIN breed_dict on main_animals.id_breed = breed_dict.id_breed
+    JOIN animal_type on main_animals.animal = animal_type.id_type
+    JOIN colour_dict on main_animals.id_colour = colour_dict.id_colour
+    JOIN outcome_type on main_animals.id_outcome_type = outcome_type.id_outcome_type
+    JOIN outcome_subtype on main_animals.id_outcome_subtype = outcome_subtype.id_outcome_subtype
 
     """
     cursor.execute(req)
-
+    
 
 if __name__ == "__main__":
-    connection = db_connect()
+    connection = connect_db()
     cursor = connection.cursor()
     create_table(cursor)
